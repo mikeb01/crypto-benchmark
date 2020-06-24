@@ -3,10 +3,11 @@ cmake_minimum_required(VERSION 3.1)
 project(crypto_benchmark)
 
 option(hydrogen "Build libhydrogen benchmark" OFF)
-option(nss "Build NSS benchmark" ON)
+option(nss "Build NSS benchmark" OFF)
 option(openssl "Build OpenSSL benchmark" ON)
 option(sodium "Build libsodium benchmark" ON)
 option(wolfcrypt "Build wolfCrypt benchmark" ON)
+option(gcrypt "Build gcrypt benchmark" ON)
 
 find_package(Threads
 	REQUIRED
@@ -131,6 +132,11 @@ if(sodium)
 		PRIVATE
 			${libsodium_LIBRARIES}
 	)
+
+	target_link_directories(crypto_benchmark
+		PRIVATE
+			${libsodium_LIBRARY_DIRS}
+	)
 endif()
 
 if(wolfcrypt)
@@ -170,8 +176,45 @@ if(wolfcrypt)
 			"wolfcrypt.h"
 	)
 
+	target_link_directories(crypto_benchmark
+		PRIVATE
+			${wolfssl_LIBRARY_DIRS}
+	)
+
 	target_link_libraries(crypto_benchmark
 		PRIVATE
 			${wolfssl_LIBRARIES}
 	)
+endif()
+if(gcrypt)
+	pkg_search_module(gcrypt
+			REQUIRED
+			libgcrypt
+			)
+
+	target_compile_definitions(crypto_benchmark
+			PRIVATE
+			"BENCHMARK_GCRYPT"
+			)
+
+	target_include_directories(crypto_benchmark
+			PRIVATE
+			${gcrypt_INCLUDE_DIRS}
+			)
+
+	target_sources(crypto_benchmark
+			PRIVATE
+			"bench_gcrypt.c"
+			"bench_gcrypt.h"
+			)
+
+	target_link_libraries(crypto_benchmark
+			PRIVATE
+			${gcrypt_LIBRARIES}
+			)
+
+	target_link_directories(crypto_benchmark
+			PRIVATE
+			${gcrypt_LIBRARY_DIRS}
+			)
 endif()
